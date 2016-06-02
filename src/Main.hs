@@ -69,7 +69,7 @@ imageViewer
       = do mbfname <- fileOpenDialog f False {- change current directory -} True "Open image" imageFiles "" ""
            case mbfname of
              Nothing    -> return ()
-             Just fname -> openImage sw vbitmap mclose status fname
+             Just fname -> openImage sw vbitmap mclose status fname f
 
     onClose sw vbitmap mclose status
       = do closeImage vbitmap
@@ -84,7 +84,7 @@ imageViewer
              Nothing -> return ()
              Just bm -> objectDelete bm
 
-    openImage sw vbitmap mclose status fname
+    openImage sw vbitmap mclose status fname frame
       = do -- load the new bitmap
            bm <- bitmapCreateFromFile fname  -- can fail with exception
            closeImage vbitmap
@@ -94,6 +94,7 @@ imageViewer
            -- reset the scrollbars 
            bmsize <- get bm size
            set sw [virtualSize := bmsize]
+           set frame [outerSize := Size (sizeW bmsize + 400) (sizeH bmsize + 300)]
            repaint sw
        `onException` repaint sw
 
