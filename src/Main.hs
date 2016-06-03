@@ -1,7 +1,8 @@
 module Main where
 
 import Control.Exception (onException)
-import Graphics.UI.WX 
+import Graphics.UI.WX
+import Graphics.UI.WXCore
 
 main :: IO ()
 main
@@ -54,7 +55,7 @@ imageViewer
                                            ,fill (widget sw)]
              ,statusBar        := [status]
              ,menuBar          := [file,hlp]
-             ,outerSize        := sz 400 300    -- niceness
+             ,outerSize        := sz 800 800    -- niceness
              ,on (menu about)  := infoDialog f "About ImageViewer" "This is a wxHaskell demo"
              ,on (menu quit)   := close f
              ,on (menu open)   := onOpen f sw vbitmap mclose status 
@@ -86,18 +87,23 @@ imageViewer
 
     openImage sw vbitmap mclose status fname frame
       = do -- load the new bitmap
-           bm <- bitmapCreateFromFile fname  -- can fail with exception
+           let img = image fname
+           Size w h <- get img size
+           imgScaled <- imageConvertToBitmap =<< imageScale img (sz (w `div` h * 500) 500)
            closeImage vbitmap
-           set vbitmap [value := Just bm]
+           set vbitmap [value := Just imgScaled]
            set mclose [enabled := True]
            set status [text := fname]
            -- reset the scrollbars 
-           bmsize <- get bm size
+           bmsize <- get imgScaled size
            set sw [virtualSize := bmsize]
-           set frame [outerSize := Size (sizeW bmsize + 400) (sizeH bmsize + 300)]
+           set frame [outerSize := Size (sizeW bmsize + 300) (sizeH bmsize + 300)]
            repaint sw
        `onException` repaint sw
-
+        --   where
+          --     img = image fname
+            --   newWidth = ((sizeW bmsize2) `div` (sizeH bmsize2)) * 500
+              -- newHeight = 500
     onPaint vbitmap dc viewArea
       = do mbBitmap <- get vbitmap value
            case mbBitmap of
