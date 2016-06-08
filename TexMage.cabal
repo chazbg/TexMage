@@ -22,5 +22,5 @@ executable TexMage
   build-depends:       base >=4.8 && <4.9,
                        wx,
                        wxcore
-  hs-source-dirs:      src
+  hs-source-dirs:      src, src/EventHandlers
   default-language:    Haskell2010
