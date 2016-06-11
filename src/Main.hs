@@ -14,20 +14,22 @@ imageViewer
        f      <- frameFixed [text := "TexMage", picture := "images/image.jpg", fullRepaintOnResize := False]
 
        -- use a mutable variable to hold the image
-       vbitmap <- variable [value := Nothing]
+       vImg <- variable [value := Nothing]
+       vImgProcessed <- variable [value := Nothing]
 
        -- add a scrollable window widget in the frame
        sw     <- scrolledWindow f [scrollRate := sz 10 10, 
-                                   on paint := onPaint vbitmap,
+                                   on paint := onPaint vImg,
                                    bgcolor := white, fullRepaintOnResize := False]
        swSec  <- scrolledWindow f [scrollRate := sz 10 10, 
-                                   on paint := onPaintSecond vbitmap,
+                                   on paint := onPaintSecond vImgProcessed,
                                    bgcolor := white, fullRepaintOnResize := False]
 
        -- create file menu
        file   <- menuPane      [text := "&File"]
        mclose <- menuItem file [text := "&Close\tCtrl+C", help := "Close the image", enabled := False]
        open   <- menuItem file [text := "&Open\tCtrl+O",  help := "Open an image"]
+       process <- menuItem file [text := "&Process\tCtrl+P",  help := "Process an image"]
        menuLine file
        quit   <- menuQuit file [help := "Quit"]
 
@@ -38,6 +40,7 @@ imageViewer
        -- create Toolbar
        tbar   <- toolBar f []
        _      <- toolMenu tbar open  "Open"  "images/image.jpg" []
+       _      <- toolMenu tbar process  "Process"  "images/image.jpg" []
 
        -- create statusbar field
        status <- statusField   [text := "Welcome to TexMage"]
@@ -55,14 +58,15 @@ imageViewer
                                                ]
                                              ] 
                                            ],
-              statusBar        := [status],
-              menuBar          := [file, hlp],
-              outerSize        := sz 640 480,    -- niceness
-              on (menu about)  := infoDialog f "About TexMage" "TODO",
-              on (menu quit)   := close f,
-              on (menu open)   := onOpen f sw vbitmap mclose status,
-              on (menu mclose) := onClose sw vbitmap mclose status,
+              statusBar         := [status],
+              menuBar           := [file, hlp],
+              outerSize         := sz 640 480,    -- niceness
+              on (menu about)   := infoDialog f "About TexMage" "TODO",
+              on (menu quit)    := close f,
+              on (menu open)    := onOpen f sw vImg mclose status,
+              on (menu mclose)  := onClose sw vImg mclose status,
+              on (menu process) := onProcess swSec vImg vImgProcessed status,
 
              -- nice close down, but no longer necessary as bitmaps are managed automatically.
-              on closing       :~ \previous -> do{ closeImage vbitmap; previous }
+              on closing       :~ \previous -> do{ closeImage vImg; previous }
              ]
