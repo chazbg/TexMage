@@ -18,12 +18,10 @@ imageViewer
        vImgProcessed <- variable [value := Nothing]
 
        -- add a scrollable window widget in the frame
-       sw     <- scrolledWindow f [scrollRate := sz 10 10, 
-                                   on paint := onPaint vImg,
-                                   bgcolor := white, fullRepaintOnResize := False]
-       swSec  <- scrolledWindow f [scrollRate := sz 10 10, 
-                                   on paint := onPaintSecond vImgProcessed,
-                                   bgcolor := white, fullRepaintOnResize := False]
+       p     <- panel f [ on paint := onPaint vImg,
+                          bgcolor := white, fullRepaintOnResize := False ]
+       pSec  <- panel f [ on paint := onPaintSecond vImgProcessed,
+                          bgcolor := white, fullRepaintOnResize := False ]
 
        -- create file menu
        file   <- menuPane      [text := "&File"]
@@ -51,9 +49,9 @@ imageViewer
                                              [ hfill $ hrule 1 ],
                                              [ grid 1 1 
                                                [
-                                                [ column 1 [fill $ widget sw],
+                                                [ column 1 [fill $ widget p],
                                                   vfill $ vrule 1,
-                                                  column 1 [fill $ widget swSec] 
+                                                  column 1 [fill $ widget pSec] 
                                                 ]
                                                ]
                                              ] 
@@ -63,9 +61,9 @@ imageViewer
               outerSize         := sz 640 480,    -- niceness
               on (menu about)   := infoDialog f "About TexMage" "TODO",
               on (menu quit)    := close f,
-              on (menu open)    := onOpen f sw vImg mclose status,
-              on (menu mclose)  := onClose sw vImg mclose status,
-              on (menu process) := onProcess swSec vImg vImgProcessed status,
+              on (menu open)    := onOpen f p vImg mclose status,
+              on (menu mclose)  := onClose p vImg mclose status,
+              on (menu process) := onProcess pSec vImg vImgProcessed status,
 
              -- nice close down, but no longer necessary as bitmaps are managed automatically.
               on closing       :~ \previous -> do{ closeImage vImg; previous }

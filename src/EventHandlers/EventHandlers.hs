@@ -28,19 +28,19 @@ getImageScale imageSize windowSize
       newHeight    = (imageHeight * min windowWidth windowHeight) `div` max imageWidth imageHeight
     in Size newWidth newHeight
      
-onOpen :: Frame a -> ScrolledWindow b -> Var (Maybe (Image ())) -> MenuItem c -> StatusField -> IO ()
-onOpen f sw vImg mclose status
+onOpen :: Frame a -> Panel b -> Var (Maybe (Image ())) -> MenuItem c -> StatusField -> IO ()
+onOpen f p vImg mclose status
   = do 
       mbfname <- fileOpenDialog f False {- change current directory -} True "Open image" imageFiles "" ""
-      for_ mbfname $ \fname -> openImage sw vImg mclose status fname
+      for_ mbfname $ \fname -> openImage p vImg mclose status fname
 
-onClose :: ScrolledWindow a -> Var (Maybe (Image ())) -> MenuItem b -> StatusField -> IO ()
-onClose sw vImg mclose status
+onClose :: Panel a -> Var (Maybe (Image ())) -> MenuItem b -> StatusField -> IO ()
+onClose p vImg mclose status
   = do closeImage vImg
        set mclose [enabled := False]
-       set sw     [virtualSize := sz 0 0]
+       set p      [virtualSize := sz 0 0]
        set status [text := ""]
-       repaint sw
+       repaint p
 
 closeImage :: Var (Maybe (Image ())) -> IO ()
 closeImage vImg
@@ -48,12 +48,12 @@ closeImage vImg
       mbImg <- swap vImg value Nothing
       for_ mbImg $ \img -> objectDelete img
 
-openImage :: ScrolledWindow a -> Var (Maybe (Image ())) -> MenuItem b -> StatusField -> String -> IO ()
-openImage sw vImg mclose status fname
+openImage :: Panel a -> Var (Maybe (Image ())) -> MenuItem b -> StatusField -> String -> IO ()
+openImage p vImg mclose status fname
   = do -- load the new bitmap
        let img = image fname
        Size imgW imgH <- get img size
-       Size clientW clientH  <- get sw clientSize
+       Size clientW clientH  <- get p clientSize
        imgScaled <- imageScale img (getImageScale (sz imgW imgH) (sz clientW clientH))
        closeImage vImg
        set vImg [value := Just imgScaled]
@@ -61,9 +61,9 @@ openImage sw vImg mclose status fname
        set status [text := fname]
        -- reset the scrollbars 
        bmsize <- get imgScaled size
-       set sw [virtualSize := bmsize]
-       repaint sw
-   `onException` repaint sw
+       set p [virtualSize := bmsize]
+       repaint p
+   `onException` repaint p
 
 onPaint :: Var (Maybe (Image ())) -> DC () -> Rect -> IO ()
 onPaint vImg dc _
@@ -79,9 +79,8 @@ onPaintSecond vImg dc _
          Nothing -> return () 
          Just img -> drawImage dc img pointZero []
 
-onProcess :: ScrolledWindow a -> Var (Maybe (Image ())) -> Var (Maybe (Image ())) -> StatusField -> IO ()
-onProcess sw vImg vImgProcessed status
--- = for_ vImg $ \img -> return ()
+onProcess :: Panel a -> Var (Maybe (Image ())) -> Var (Maybe (Image ())) -> StatusField -> IO ()
+onProcess p vImg vImgProcessed status
   = do
       mbImg <- get vImg value
       for_ mbImg $ \img -> 
@@ -93,7 +92,7 @@ onProcess sw vImg vImgProcessed status
           createDirectoryIfMissing True "processed"
           _ <- imageSaveFile processedImg "processed/processed.png" (imageTypeFromFileName "processed/processed.png")
           set status [text := "TODO: Print saved image location"]
-          repaint sw
+          repaint p
           return ()
       return ()
-    `onException` repaint sw
+    `onException` repaint p
