@@ -72,13 +72,6 @@ onPaint vImg dc _
          Nothing -> return () 
          Just img -> drawImage dc img pointZero []
 
-onPaintSecond :: Var (Maybe (Image ())) -> DC () -> Rect -> IO ()
-onPaintSecond vImg dc _
-  = do mbImg <- get vImg value
-       case mbImg of
-         Nothing -> return () 
-         Just img -> drawImage dc img pointZero []
-
 onProcess :: Panel a -> Var (Maybe (Image ())) -> Var (Maybe (Image ())) -> StatusField -> IO ()
 onProcess p vImg vImgProcessed status
   = do
