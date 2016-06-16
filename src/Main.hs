@@ -27,10 +27,8 @@ imageViewer
        vImgProcessed <- variable [value := Nothing]
 
        -- add preview panels in the frame
-       p1     <- panel f [ on paint := onPaint vImg,
-                           bgcolor := white, fullRepaintOnResize := False ]
-       p2     <- panel f [ on paint := onPaint vImgProcessed,
-                           bgcolor := white, fullRepaintOnResize := False ]
+       p1     <- panel f [ bgcolor := white, fullRepaintOnResize := False ]
+       p2     <- panel f [ bgcolor := white, fullRepaintOnResize := False ]
 
        -- create file menu
        file   <- menuPane       [text := "&File"]

@@ -39,6 +39,8 @@ onClose p vImg mclose status
   = do closeImage vImg
        set mclose [enabled := False]
        set p      [virtualSize := sz 0 0]
+       img <- get vImg value
+       set p      [on paint := onPaint img]
        set status [text := ""]
        repaint p
 
@@ -56,19 +58,19 @@ openImage p vImg mclose status fname
        Size clientW clientH  <- get p clientSize
        imgScaled <- imageScale img (getImageScale (sz imgW imgH) (sz clientW clientH))
        closeImage vImg
-       set vImg [value := Just imgScaled]
+       set vImg [value := Just img]
        set mclose [enabled := True]
        set status [text := fname]
        -- reset the scrollbars 
        bmsize <- get imgScaled size
        set p [virtualSize := bmsize]
+       set p [on paint := onPaint (Just imgScaled)]
        repaint p
    `onException` repaint p
 
-onPaint :: Var (Maybe (Image ())) -> DC () -> Rect -> IO ()
-onPaint vImg dc _
-  = do mbImg <- get vImg value
-       case mbImg of
+onPaint :: Maybe (Image ()) -> DC () -> Rect -> IO ()
+onPaint mbImg dc _
+  = do case mbImg of
          Nothing -> return () 
          Just img -> drawImage dc img pointZero []
 
@@ -85,6 +87,11 @@ onProcess p vImg vImgProcessed status
           createDirectoryIfMissing True "processed"
           _ <- imageSaveFile processedImg "processed/processed.png" (imageTypeFromFileName "processed/processed.png")
           set status [text := "TODO: Print saved image location"]
+
+          -- use scaled image for preview
+          Size clientW clientH  <- get p clientSize
+          imgScaled <- imageScale processedImg (getImageScale (sz imgW imgH) (sz clientW clientH))
+          set p      [on paint := onPaint (Just imgScaled)]
           repaint p
           return ()
       return ()
