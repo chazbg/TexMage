@@ -39,7 +39,7 @@ onClose p vImg mclose status
   = do closeImage vImg
        set mclose [enabled := False]
        set p      [virtualSize := sz 0 0]
-       img <- get vImg value
+       img        <- get vImg value
        set p      [on paint := onPaint img]
        set status [text := ""]
        repaint p
@@ -53,26 +53,23 @@ closeImage vImg
 openImage :: Panel a -> Var (Maybe (Image ())) -> MenuItem b -> StatusField -> String -> IO ()
 openImage p vImg mclose status fname
   = do -- load the new bitmap
-       let img = image fname
-       Size imgW imgH <- get img size
-       Size clientW clientH  <- get p clientSize
-       imgScaled <- imageScale img (getImageScale (sz imgW imgH) (sz clientW clientH))
+       let img    = image fname
+       imgSize    <- get img size
+       innerSize  <- get p clientSize
+       imgScaled  <- imageScale img (getImageScale imgSize innerSize)
        closeImage vImg
-       set vImg [value := Just img]
+       set vImg   [value := Just img]
        set mclose [enabled := True]
        set status [text := fname]
-       -- reset the scrollbars 
-       bmsize <- get imgScaled size
-       set p [virtualSize := bmsize]
-       set p [on paint := onPaint (Just imgScaled)]
+       set p      [on paint := onPaint (Just imgScaled)]
        repaint p
    `onException` repaint p
 
 onPaint :: Maybe (Image ()) -> DC () -> Rect -> IO ()
 onPaint mbImg dc _
-  = do case mbImg of
-         Nothing -> return () 
-         Just img -> drawImage dc img pointZero []
+  = case mbImg of
+      Nothing -> return () 
+      Just img -> drawImage dc img pointZero []
 
 onProcess :: Panel a -> Var (Maybe (Image ())) -> Var (Maybe (Image ())) -> StatusField -> IO ()
 onProcess p vImg vImgProcessed status
@@ -80,18 +77,21 @@ onProcess p vImg vImgProcessed status
       mbImg <- get vImg value
       for_ mbImg $ \img -> 
         do
-          Size imgW imgH <- get img size
-          pixelBuffer <- imageGetPixels img
-          processedImg <- imageCreateFromPixels (sz imgW imgH) (map (\x -> colorFromInt (intFromColor x `div` 2)) pixelBuffer)
+          let outputFile = "processed/processed.png"
+          imgSize        <- get img size
+          pixelBuffer    <- imageGetPixels img
+          processedImg   <- imageCreateFromPixels imgSize (map (\x -> colorFromInt (intFromColor x `div` 2)) pixelBuffer)
           set vImgProcessed [ value := Just processedImg ]
+
           createDirectoryIfMissing True "processed"
-          _ <- imageSaveFile processedImg "processed/processed.png" (imageTypeFromFileName "processed/processed.png")
-          set status [text := "TODO: Print saved image location"]
+          _              <- imageSaveFile processedImg outputFile (imageTypeFromFileName outputFile)
+          fullOutputPath <- makeAbsolute outputFile
+          set status     [ text := ("Processed file saved to " ++ fullOutputPath) ]
 
           -- use scaled image for preview
-          Size clientW clientH  <- get p clientSize
-          imgScaled <- imageScale processedImg (getImageScale (sz imgW imgH) (sz clientW clientH))
-          set p      [on paint := onPaint (Just imgScaled)]
+          innerSize      <- get p clientSize
+          imgScaled      <- imageScale processedImg (getImageScale imgSize innerSize)
+          set p          [on paint := onPaint (Just imgScaled)]
           repaint p
           return ()
       return ()
