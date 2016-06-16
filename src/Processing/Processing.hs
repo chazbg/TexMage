@@ -13,15 +13,25 @@ getImageScale imageSize windowSize
       newHeight    = (imageHeight * min windowWidth windowHeight) `div` max imageWidth imageHeight
     in Size newWidth newHeight
 
+getChannels :: Color -> [Int]
+getChannels c = [ colorRed c, colorGreen c, colorBlue c ]
+
+normalizeColorChannel :: Int -> Float
+normalizeColorChannel c = fromIntegral c / 255.0
+
+denormalizeColorChannel :: Float -> Int 
+denormalizeColorChannel c = round (c * 255)
+
+dummyProcessChannel :: Int -> Int
+dummyProcessChannel c = c `div` 2
+
 dummyProcessPixel :: Color -> Color
-dummyProcessPixel c 
+dummyProcessPixel c
   = let 
-      r = colorRed c
-      g = colorGreen c
-      b = colorBlue c
-      processedR = r `div` 2
-      processedG = g `div` 2
-      processedB = b `div` 2
+      channels = map dummyProcessChannel (getChannels c)
+      processedR = head channels
+      processedG = channels !! 1
+      processedB = channels !! 2
     in rgb processedR processedG processedB
 
 dummyProcess :: [Color] -> [Color]
@@ -61,14 +71,12 @@ linearRGB (x:xs)
 sRGBtoLinearPixel :: Color -> Color
 sRGBtoLinearPixel c
   = let 
-    channels = [ fromIntegral (colorRed c) / 255.0, 
-                 fromIntegral (colorGreen c) / 255.0, 
-                 fromIntegral (colorBlue c) / 255.0 ]
-    processedChannels = linearRGB channels
+    channels = map normalizeColorChannel (getChannels c)
+    processedChannels = map denormalizeColorChannel (linearRGB channels)
     processedR = head processedChannels
     processedG = processedChannels !! 1
     processedB = processedChannels !! 2
-  in rgb (round (processedR * 255.0)) (round (processedG * 255.0)) (round (processedB * 255.0))
+  in rgb processedR processedG processedB
 
 sRGBtoLinear :: [Color] -> [Color]
 sRGBtoLinear = map sRGBtoLinearPixel
