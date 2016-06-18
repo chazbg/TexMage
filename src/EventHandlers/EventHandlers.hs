@@ -10,10 +10,11 @@ import Processing
 -- Specify image files for the file open dialog.
 imageFiles :: [(String, [String])]
 imageFiles
-   = [("Image files",["*.bmp","*.jpg","*.gif","*.png"])
+   = [("Image files",["*.bmp","*.jpg","*.jpeg","*.gif","*.png"])
      ,("Portable Network Graphics (*.png)",["*.png"])
      ,("BMP files (*.bmp)",["*.bmp"])
      ,("JPG files (*.jpg)",["*.jpg"])
+     ,("JPEG files (*.jpeg)",["*.jpeg"])
      ,("GIF files (*.gif)",["*.gif"])
      ]
 
