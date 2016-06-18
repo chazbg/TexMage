@@ -24,7 +24,6 @@ imageViewer
 
        -- use a mutable variable to hold the image
        vImg <- variable [value := Nothing]
-       vImgProcessed <- variable [value := Nothing]
 
        -- add preview panels in the frame
        p1     <- panel f [ bgcolor := white, fullRepaintOnResize := False ]
@@ -59,8 +58,8 @@ imageViewer
               on (menu about)   := infoDialog f "About TexMage" "TODO",
               on (menu quit)    := close f,
               on (menu open)    := onOpen f p1 vImg mclose status,
-              on (menu mclose)  := onClose p1 vImg mclose status,
-              on (menu process) := onProcess p2 vImg vImgProcessed status,
+              on (menu mclose)  := onClose p1 p2 vImg mclose status,
+              on (menu process) := onProcess p2 vImg status,
 
              -- nice close down, but no longer necessary as bitmaps are managed automatically.
               on closing       :~ \previous -> do{ closeImage vImg; previous }

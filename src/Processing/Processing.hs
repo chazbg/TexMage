@@ -57,7 +57,7 @@ linearRGBLargerThanK0 x
   = let
       gamma = 2.4
       alpha = 0.055
-    in (x + alpha) / (1.0 + alpha) ** gamma
+    in ((x + alpha) / (1.0 + alpha)) ** gamma
 
 linearRGB :: [Float] -> [Float]
 linearRGB [] = []

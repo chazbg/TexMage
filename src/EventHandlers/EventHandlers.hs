@@ -23,22 +23,20 @@ onOpen f p vImg mclose status
       mbfname <- fileOpenDialog f False {- change current directory -} True "Open image" imageFiles "" ""
       for_ mbfname $ \fname -> openImage p vImg mclose status fname
 
-onClose :: Panel a -> Var (Maybe (Image ())) -> MenuItem b -> StatusField -> IO ()
-onClose p vImg mclose status
+onClose :: Panel a -> Panel b -> Var (Maybe (Image ())) -> MenuItem c -> StatusField -> IO ()
+onClose p1 p2 vImg mclose status
   = do 
       closeImage vImg
       set mclose [enabled := False]
-      set p      [virtualSize := sz 0 0]
-      img        <- get vImg value
-      set p      [on paint := onPaint img]
+      set p1     [on paint := onPaint Nothing]
+      set p2     [on paint := onPaint Nothing]
       set status [text := ""]
-      repaint p
+      repaint p1
+      repaint p2
+
 
 closeImage :: Var (Maybe (Image ())) -> IO ()
-closeImage vImg
-  = do 
-      mbImg <- swap vImg value Nothing
-      for_ mbImg $ \img -> objectDelete img
+closeImage vImg = set vImg [value := Nothing]
 
 openImage :: Panel a -> Var (Maybe (Image ())) -> MenuItem b -> StatusField -> String -> IO ()
 openImage p vImg mclose status fname
@@ -57,12 +55,10 @@ openImage p vImg mclose status fname
 
 onPaint :: Maybe (Image ()) -> DC () -> Rect -> IO ()
 onPaint mbImg dc _
-  = case mbImg of
-      Nothing -> return () 
-      Just img -> drawImage dc img pointZero []
+  = for_ mbImg $ \img -> drawImage dc img pointZero []
 
-onProcess :: Panel a -> Var (Maybe (Image ())) -> Var (Maybe (Image ())) -> StatusField -> IO ()
-onProcess p vImg vImgProcessed status
+onProcess :: Panel a -> Var (Maybe (Image ())) -> StatusField -> IO ()
+onProcess p vImg status
   = do
       mbImg <- get vImg value
       for_ mbImg $ \img -> 
@@ -71,8 +67,7 @@ onProcess p vImg vImgProcessed status
           imgSize        <- get img size
           pixelBuffer    <- imageGetPixels img
           processedImg   <- imageCreateFromPixels imgSize (sRGBtoLinear pixelBuffer)
-          set vImgProcessed [ value := Just processedImg ]
-
+          
           createDirectoryIfMissing True "processed"
           _              <- imageSaveFile processedImg outputFile (imageTypeFromFileName outputFile)
           fullOutputPath <- makeAbsolute outputFile
