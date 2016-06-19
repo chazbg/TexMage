@@ -57,13 +57,14 @@ onPaint :: Maybe (Image ()) -> DC () -> Rect -> IO ()
 onPaint mbImg dc _
   = for_ mbImg $ \img -> drawImage dc img pointZero []
 
-onProcess :: ([Color] -> [Color]) -> Panel a -> Var (Maybe (Image ())) -> StatusField -> IO ()
-onProcess process p vImg status
+onProcess :: Var ([Color] -> [Color]) -> Panel a -> Var (Maybe (Image ())) -> StatusField -> IO ()
+onProcess vProcess p vImg status
   = do
       mbImg <- get vImg value
       for_ mbImg $ \img -> 
         do
           let outputFile = "processed/processed.png"
+          process        <- get vProcess value
           imgSize        <- get img size
           pixelBuffer    <- imageGetPixels img
           processedImg   <- imageCreateFromPixels imgSize (process pixelBuffer)
