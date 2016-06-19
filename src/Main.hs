@@ -2,6 +2,7 @@ module Main where
 
 import Graphics.UI.WX
 import EventHandlers
+import Processing
 
 createPanelLayout :: Panel a -> Layout
 createPanelLayout p = column 1 [ fill $ widget p ]
@@ -54,12 +55,12 @@ imageViewer
        set f [layout            := createFrameLayout p1 p2,
               statusBar         := [status],
               menuBar           := [file, hlp],
-              outerSize         := sz 640 480,    -- niceness
+              outerSize         := sz 1280 720,    -- niceness
               on (menu about)   := infoDialog f "About TexMage" "TODO",
               on (menu quit)    := close f,
               on (menu open)    := onOpen f p1 vImg mclose status,
               on (menu mclose)  := onClose p1 p2 vImg mclose status,
-              on (menu process) := onProcess p2 vImg status,
+              on (menu process) := onProcess sRGBtoLinear p2 vImg status,
 
              -- nice close down, but no longer necessary as bitmaps are managed automatically.
               on closing       :~ \previous -> do{ closeImage vImg; previous }

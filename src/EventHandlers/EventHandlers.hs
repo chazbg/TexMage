@@ -35,7 +35,6 @@ onClose p1 p2 vImg mclose status
       repaint p1
       repaint p2
 
-
 closeImage :: Var (Maybe (Image ())) -> IO ()
 closeImage vImg = set vImg [value := Nothing]
 
@@ -58,8 +57,8 @@ onPaint :: Maybe (Image ()) -> DC () -> Rect -> IO ()
 onPaint mbImg dc _
   = for_ mbImg $ \img -> drawImage dc img pointZero []
 
-onProcess :: Panel a -> Var (Maybe (Image ())) -> StatusField -> IO ()
-onProcess p vImg status
+onProcess :: ([Color] -> [Color]) -> Panel a -> Var (Maybe (Image ())) -> StatusField -> IO ()
+onProcess process p vImg status
   = do
       mbImg <- get vImg value
       for_ mbImg $ \img -> 
@@ -67,8 +66,9 @@ onProcess p vImg status
           let outputFile = "processed/processed.png"
           imgSize        <- get img size
           pixelBuffer    <- imageGetPixels img
-          processedImg   <- imageCreateFromPixels imgSize (sRGBtoLinear pixelBuffer)
+          processedImg   <- imageCreateFromPixels imgSize (process pixelBuffer)
           
+          -- store processed image in a file
           createDirectoryIfMissing True "processed"
           _              <- imageSaveFile processedImg outputFile (imageTypeFromFileName outputFile)
           fullOutputPath <- makeAbsolute outputFile

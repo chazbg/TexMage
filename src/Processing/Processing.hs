@@ -2,6 +2,9 @@ module Processing where
 
 import Graphics.UI.WX
 
+getAspectRatio :: Float -> Float -> Float
+getAspectRatio w h = w / h
+
 getImageScale :: Size -> Size -> Size 
 getImageScale imageSize windowSize
   = let 
@@ -9,9 +12,12 @@ getImageScale imageSize windowSize
       imageHeight  = sizeH imageSize
       windowWidth  = sizeW windowSize
       windowHeight = sizeH windowSize
-      newWidth     = (imageWidth  * min windowWidth windowHeight) `div` max imageWidth imageHeight
-      newHeight    = (imageHeight * min windowWidth windowHeight) `div` max imageWidth imageHeight
-    in Size newWidth newHeight
+      aspectRatio  = getAspectRatio (fromIntegral imageWidth) (fromIntegral imageHeight)
+    in 
+      if aspectRatio > 1.0 then 
+        Size windowWidth (floor (fromIntegral windowHeight / aspectRatio))
+      else
+        Size (floor (fromIntegral windowWidth * aspectRatio)) windowHeight
 
 getChannels :: Color -> [Int]
 getChannels c = [ colorRed c, colorGreen c, colorBlue c ]
