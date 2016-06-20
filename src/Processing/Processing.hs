@@ -65,14 +65,16 @@ linearRGBLargerThanK0 x
       alpha = 0.055
     in ((x + alpha) / (1.0 + alpha)) ** gamma
 
-linearRGB :: [Float] -> [Float]
-linearRGB [] = []
-linearRGB (x:xs)
+linearRGBChannel :: Float -> Float
+linearRGBChannel x
   = let
       a = linearRGBLargerThanK0 x
       b = linearRGBLessThanK0 x
       t = lessThanK0 x
-    in mix a b t : linearRGB xs
+    in mix a b t
+
+linearRGB :: [Float] -> [Float]
+linearRGB = map linearRGBChannel
 
 sRGBtoLinearPixel :: Color -> Color
 sRGBtoLinearPixel c
